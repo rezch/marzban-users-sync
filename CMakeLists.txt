@@ -46,6 +46,7 @@ file(GLOB LIB_SOURCES
     src/host_api_manager.cpp
     src/user/user.cpp
 )
+
 file(GLOB LIB_HEADERS src/*.h)
 
 add_library(sync_api

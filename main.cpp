@@ -2,25 +2,25 @@
 #include "logging.h"
 
 #include <dotenv.h>
-
 #include <cpr/cpr.h>
 #include <nlohmann/json.hpp>
-
 
 int main()
 {
     dotenv::env.load_dotenv("../.env");
 
-    LOG_ERROR(dotenv::env["HOST"]);
+    std::vector<std::string> names;
+    api::createHostApiManager(dotenv::env["HOST"] + "/n1")
+        .init()
+        .loadUsers()
+        .visitUsers(
+            [&names](api::user::User& user)
+            {
+                names.emplace_back(user.getName());
+            }
+        );
 
-    auto apiManager =
-        api::createHostApiManager()
-            .init()
-            .loadUsers();
-
-    const std::string uuid = "<some-uuid5>";
-    apiManager.getUser("testuser")
-        .injectCustomUUID(uuid);
-
-    apiManager.saveUsers();
+    for (const auto& name : names) {
+        LOG_INFO("name:", name);
+    }
 }

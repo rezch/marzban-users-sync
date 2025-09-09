@@ -28,6 +28,7 @@ void HostApiManager::getToken()
     };
 
     auto r = cpr::Post(url, headers, body);
+
     if (r.status_code != HTTP_STATUS_OK) {
         LOG_ERROR("Cannot get API token.", "Response code: ", r.status_code);
     }
@@ -107,10 +108,10 @@ bool HostApiManager::updateUser(const std::string& name, const user::User& user)
     return true;
 }
 
-HostApiManager createHostApiManager()
+HostApiManager createHostApiManager(std::string host)
 {
     return api::HostApiManager(
-        dotenv::env["HOST"],
+        std::move(host),
         dotenv::env["USERNAME"],
         dotenv::env["PASSWORD"]);
 }

@@ -39,17 +39,17 @@ inline LOG_LEVEL parseStr(const std::string &log_level)
 template <class... Args>
 void log(Args&&... args)
 {
-    std::cout << "LOG: ";
+    std::cout << "LOG ";
     ((std::cout << args << ' '), ...) << std::endl;
 }
 
 } // namespace
 
 #define LOG_ERROR(...) \
-{ if (LOG_LEVEL::ERROR <= getLogLevel()) log(__VA_ARGS__); }
+{ if (LOG_LEVEL::ERROR <= getLogLevel()) log("(ERROR):", __VA_ARGS__); }
 
 #define LOG_INFO(...) \
-{ if (LOG_LEVEL::INFO <= getLogLevel()) log(__VA_ARGS__); }
+{ if (LOG_LEVEL::INFO <= getLogLevel()) log("(INFO):", __VA_ARGS__); }
 
 #define LOG_DEBUG(...) \
-{ if (LOG_LEVEL::DEBUG <= getLogLevel()) log(__VA_ARGS__); }
+{ if (LOG_LEVEL::DEBUG <= getLogLevel()) log("(DEBUG):", __VA_ARGS__); }

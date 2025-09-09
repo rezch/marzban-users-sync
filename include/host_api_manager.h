@@ -1,6 +1,7 @@
 #pragma once
 
 #include "user.h"
+
 #include <nlohmann/json.hpp>
 
 #include <optional>
@@ -29,6 +30,14 @@ public:
 
     user::User& getUser(const std::string& name);
 
+    template <class Callable>
+        requires std::invocable<Callable, user::User&>
+    HostApiManager& visitUser(const std::string& name, Callable visitor);
+
+    template <class Callable>
+        requires std::invocable<Callable, user::User&>
+    HostApiManager& visitUsers(Callable visitor);
+
     bool saveUsers() const;
 
 private:
@@ -44,6 +53,25 @@ private:
     std::unordered_map<std::string, user::User> users_;
 };
 
-HostApiManager createHostApiManager();
+template <class Callable>
+    requires std::invocable<Callable, user::User&>
+HostApiManager& HostApiManager::visitUser(const std::string& name, Callable visitor)
+{
+    if (users_.contains(name))
+        visitor(users_[name]);
+    return *this;
+}
+
+template <class Callable>
+    requires std::invocable<Callable, user::User&>
+HostApiManager& HostApiManager::visitUsers(Callable visitor)
+{
+    for (auto& [_, user] : users_) {
+        visitor(user);
+    }
+    return *this;
+}
+
+HostApiManager createHostApiManager(std::string host);
 
 } // namespace api

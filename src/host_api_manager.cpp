@@ -86,7 +86,6 @@ bool HostApiManager::saveUsers() const
 
 bool HostApiManager::updateUser(const std::string& name, const user::User& user) const
 {
-    LOG_ERROR("USER:", name, "SYNC:", user.isSynchronized());
     if (user.isSynchronized()) {
         return true;
     }

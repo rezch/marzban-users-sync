@@ -1,6 +1,6 @@
 #pragma once
 
-#include "third_party/cpp-dotenv/include/dotenv.h"
+#include <dotenv.h>
 
 #include <iostream>
 

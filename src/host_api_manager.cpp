@@ -85,6 +85,12 @@ bool HostApiManager::saveUsers() const
     return true;
 }
 
+void HostApiManager::addUser(const user::User& user)
+{
+    // user
+    users_[user.getName()] = user;
+}
+
 bool HostApiManager::updateUser(const std::string& name, const user::User& user) const
 {
     if (user.isSynchronized()) {
@@ -108,12 +114,13 @@ bool HostApiManager::updateUser(const std::string& name, const user::User& user)
     return true;
 }
 
-HostApiManager createHostApiManager(std::string host)
+HostApiManager createHostApiManager(std::string host, size_t nodeId)
 {
+    auto strNodeId = std::to_string(nodeId);
     return api::HostApiManager(
         std::move(host),
-        dotenv::env["USERNAME"],
-        dotenv::env["PASSWORD"]);
+        dotenv::env["USERNAME_" + strNodeId],
+        dotenv::env["PASSWORD_" + strNodeId]);
 }
 
 } // namespace api

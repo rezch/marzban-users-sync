@@ -48,4 +48,14 @@ nlohmann::json User::toShort() const
     };
 }
 
+nlohmann::json& User::operator[](std::string&& key)
+{
+    return data_[key];
+}
+
+nlohmann::json& User::operator[](const std::string& key)
+{
+    return data_[key];
+}
+
 } // namespace api::user

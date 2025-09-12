@@ -3,6 +3,7 @@
 #include <dotenv.h>
 
 #include <iostream>
+#include <source_location>
 
 
 namespace {
@@ -16,7 +17,7 @@ enum class LOG_LEVEL {
     DEBUG = 3,
 };
 
-inline LOG_LEVEL parseStr(const std::string &log_level)
+inline LOG_LEVEL parseStr(const std::string& log_level)
 {
     if (log_level == "INFO") {
         return LOG_LEVEL::INFO;
@@ -27,7 +28,7 @@ inline LOG_LEVEL parseStr(const std::string &log_level)
     return LOG_LEVEL::NONE;
 }
 
-[[ maybe_unused ]] LOG_LEVEL getLogLevel()
+[[maybe_unused]] LOG_LEVEL getLogLevel()
 {
     static auto log_level = LOG_LEVEL::UNDEFINED;
     if (log_level == LOG_LEVEL::UNDEFINED) {
@@ -36,20 +37,44 @@ inline LOG_LEVEL parseStr(const std::string &log_level)
     return log_level;
 }
 
-template <class... Args>
-void log(Args&&... args)
+static inline std::string getFilePosition(std::source_location location)
 {
-    std::cout << "LOG ";
+    return std::string(
+               location.file_name())
+               + ":"
+               + std::to_string(location.line());
+}
+
+template <class Tag, class... Args>
+void log(Tag &&tag, Args &&...args)
+{
+    std::cout << "LOG (" << tag << "): ";
     ((std::cout << args << ' '), ...) << std::endl;
 }
 
 } // namespace
 
-#define LOG_ERROR(...) \
-{ if (LOG_LEVEL::ERROR <= getLogLevel()) log("(ERROR):", __VA_ARGS__); }
+#define LOG_ERROR(...)                         \
+    {                                          \
+        if (LOG_LEVEL::ERROR <= getLogLevel()) \
+            log("ERROR", __VA_ARGS__);         \
+    }
 
-#define LOG_INFO(...) \
-{ if (LOG_LEVEL::INFO <= getLogLevel()) log("(INFO):", __VA_ARGS__); }
+#define LOG_INFO(...)                         \
+    {                                         \
+        if (LOG_LEVEL::INFO <= getLogLevel()) \
+            log("INFO", __VA_ARGS__);         \
+    }
 
-#define LOG_DEBUG(...) \
-{ if (LOG_LEVEL::DEBUG <= getLogLevel()) log("(DEBUG):", __VA_ARGS__); }
+#define LOG_DEBUG(...)                         \
+    {                                          \
+        if (LOG_LEVEL::DEBUG <= getLogLevel()) \
+            log("DEBUG", __VA_ARGS__);         \
+    }
+
+#define LOG(...)                                                                \
+    {                                                                           \
+        if (LOG_LEVEL::INFO <= getLogLevel()) {                                 \
+            log(getFilePosition(std::source_location::current()), __VA_ARGS__); \
+        }                                                                       \
+    }

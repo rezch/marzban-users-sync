@@ -38,6 +38,8 @@ public:
         requires std::invocable<Callable, user::User&>
     HostApiManager& visitUsers(Callable visitor);
 
+    void addUser(const user::User& user);
+
     bool saveUsers() const;
 
 private:
@@ -72,6 +74,6 @@ HostApiManager& HostApiManager::visitUsers(Callable visitor)
     return *this;
 }
 
-HostApiManager createHostApiManager(std::string host);
+HostApiManager createHostApiManager(std::string host, size_t nodeId);
 
 } // namespace api

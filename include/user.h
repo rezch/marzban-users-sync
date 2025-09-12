@@ -3,7 +3,6 @@
 #include <nlohmann/json.hpp>
 
 #include <string>
-#include <unordered_map>
 
 
 namespace api::user {
@@ -24,6 +23,9 @@ public:
     User& injectCustomUUID(const std::string& uuid);
 
     nlohmann::json toShort() const;
+
+    nlohmann::json& operator[](std::string&& key);
+    nlohmann::json& operator[](const std::string& key);
 
 private:
     nlohmann::json data_;

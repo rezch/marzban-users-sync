@@ -1,6 +1,11 @@
 #include "user.h"
 #include "logging.h"
 
+#include <boost/fusion/include/for_each.hpp>
+
+#define LOG_USER(...) \
+    LOG_DEBUG("User:", getName(), __VA_ARGS__);
+
 
 namespace api::user {
 
@@ -27,7 +32,7 @@ bool User::isSynchronized() const
 
 User& User::injectCustomUUID(const std::string& uuid)
 {
-    LOG_DEBUG("User:", getName(), "inject uuid:", uuid);
+    LOG_USER("inject uuid:", uuid);
     synchronized_ = false;
     data_["proxies"]["vless"]["id"] = uuid;
     return *this;
@@ -35,27 +40,9 @@ User& User::injectCustomUUID(const std::string& uuid)
 
 nlohmann::json User::toShort() const
 {
-    return {
-        { "proxies", data_["proxies"] },
-        { "inbounds", data_["inbounds"] },
-        { "expire", data_["expire"] },
-        { "data_limit", data_["data_limit"] },
-        { "data_limit_reset_strategy", data_["data_limit_reset_strategy"] },
-        { "status", data_["status"] },
-        { "note", data_["note"] },
-        { "on_hold_timeout", data_["on_hold_timeout"] },
-        { "on_hold_expire_duration", data_["on_hold_expire_duration"] },
-    };
-}
-
-nlohmann::json& User::operator[](std::string&& key)
-{
-    return data_[key];
-}
-
-nlohmann::json& User::operator[](const std::string& key)
-{
-    return data_[key];
+    nlohmann::json shortData = data_;
+    shortData.erase("username");
+    return shortData;
 }
 
 } // namespace api::user

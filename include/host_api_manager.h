@@ -26,24 +26,34 @@ public:
 
     HostApiManager& init();
 
+    // @valid barrier
     HostApiManager& loadUsers();
+
+    // @valid barrier
+    HostApiManager& addUser(const user::User& user);
+
+    // @valid barrier
+    HostApiManager& saveUsers();
 
     user::User& getUser(const std::string& name);
 
+    // @valid barrier
     template <class Callable>
         requires std::invocable<Callable, user::User&>
     HostApiManager& visitUser(const std::string& name, Callable visitor);
 
+    // @valid barrier
     template <class Callable>
         requires std::invocable<Callable, user::User&>
     HostApiManager& visitUsers(Callable visitor);
 
-    void addUser(const user::User& user);
-
-    bool saveUsers() const;
+    bool isCompleted();
 
 private:
-    void getToken();
+
+    bool getToken();
+
+    bool loadUsersImpl();
 
     bool updateUser(const std::string& name, const user::User& user) const;
 
@@ -53,14 +63,21 @@ private:
 
     std::optional<std::string> token_;
     std::unordered_map<std::string, user::User> users_;
+
+    bool valid_;
 };
 
 template <class Callable>
     requires std::invocable<Callable, user::User&>
 HostApiManager& HostApiManager::visitUser(const std::string& name, Callable visitor)
 {
+    if (!valid_) {
+        return *this;
+    }
     if (users_.contains(name))
         visitor(users_[name]);
+    else
+        valid_ = false;
     return *this;
 }
 
@@ -68,6 +85,9 @@ template <class Callable>
     requires std::invocable<Callable, user::User&>
 HostApiManager& HostApiManager::visitUsers(Callable visitor)
 {
+    if (!valid_) {
+        return *this;
+    }
     for (auto& [_, user] : users_) {
         visitor(user);
     }

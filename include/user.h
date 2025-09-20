@@ -1,5 +1,6 @@
 #pragma once
 
+#define JSON_HAS_RANGES 1
 #include <nlohmann/json.hpp>
 
 #include <string>
@@ -24,12 +25,19 @@ public:
 
     nlohmann::json toShort() const;
 
-    nlohmann::json& operator[](std::string&& key);
-    nlohmann::json& operator[](const std::string& key);
+    template <class Key>
+    nlohmann::json& operator[](Key&& key);
 
 private:
     nlohmann::json data_;
     bool synchronized_;
 };
+
+template <class Key>
+nlohmann::json& User::operator[](Key&& key)
+{
+    synchronized_ = false;
+    return data_[key];
+}
 
 } // namespace api::user

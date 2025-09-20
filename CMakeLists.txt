@@ -17,6 +17,7 @@ include(FetchContent)
 
 set(BOOST_ENABLE_CMAKE ON)
 set(BOOST_INCLUDE_LIBRARIES
+    algorithm
     asio
     thread)
 FetchContent_Declare(
@@ -53,8 +54,7 @@ add_library(sync_api
     ${LIB_SOURCES} ${LIB_HEADERS})
 
 target_link_libraries(sync_api
-    PRIVATE Boost::asio
-    PRIVATE Boost::thread
+    ${Boost_LIBRARIES}
     PRIVATE cpr::cpr
     PRIVATE cpp_dotenv
     PRIVATE nlohmann_json::nlohmann_json)

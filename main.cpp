@@ -3,18 +3,25 @@
 
 #include <dotenv.h>
 
+
 int main()
 {
     dotenv::env.load_dotenv("../.env");
 
     std::unordered_map<std::string, api::user::User> users;
-    api::createHostApiManager(dotenv::env["HOST"] + "/n1", 1)
+    auto hostApi =
+        api::createHostApiManager(dotenv::env["HOST"] + "/n2", 2)
         .init()
         .loadUsers()
-        .visitUsers(
-            [&](api::user::User user)
+        .visitUser("test",
+            [&](api::user::User& user)
             {
-                users[user.getName()] = user;
+                user.injectCustomUUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
             }
-        );
+        )
+        .saveUsers();
+
+    if (hostApi.isCompleted()) {
+        LOG("Done");
+    }
 }

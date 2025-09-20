@@ -19,6 +19,9 @@ enum class LOG_LEVEL {
 
 inline LOG_LEVEL parseStr(const std::string& log_level)
 {
+    if (log_level == "ERROR") {
+        return LOG_LEVEL::ERROR;
+    }
     if (log_level == "INFO") {
         return LOG_LEVEL::INFO;
     }

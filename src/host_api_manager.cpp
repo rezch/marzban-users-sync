@@ -102,7 +102,7 @@ HostApiManager& HostApiManager::saveUsers()
             valid_ = false;
         }
     }
-    return *this;;
+    return *this;
 }
 
 bool HostApiManager::updateUser(const std::string& name, const user::User& user) const

@@ -9,16 +9,38 @@
 
 namespace api::user {
 
+namespace {
+std::unordered_set<std::string> parseAliases(std::string_view note)
+{
+    return {};
+}
+} // namespace
+
 User::User(const nlohmann::json& data)
     : data_(data),
       synchronized_(true)
-{ }
+{
+    parseAliases();
+}
 
 User::User(const nlohmann::json& data,
          bool synchronized)
     : data_(data),
       synchronized_(synchronized)
-{ }
+{
+    parseAliases();
+}
+
+void User::parseAliases()
+{
+    if (!data_.contains("note") || data_["note"].is_null())
+        return;
+
+    try {
+        auto note = nlohmann::json::parse(std::string(data_["note"]));
+    }
+    catch (nlohmann::json::parse_error& e) {}
+}
 
 std::string User::getName() const
 {

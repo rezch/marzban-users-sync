@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_set>
 #define JSON_HAS_RANGES 1
 #include <nlohmann/json.hpp>
 
@@ -29,7 +30,10 @@ public:
     nlohmann::json& operator[](Key&& key);
 
 private:
+    void parseAliases();
+
     nlohmann::json data_;
+    std::unordered_set<std::string> aliases_;
     bool synchronized_;
 };
 

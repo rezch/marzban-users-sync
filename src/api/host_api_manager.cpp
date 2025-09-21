@@ -19,9 +19,7 @@ HostApiManager::HostApiManager(
       username_(username),
       password_(password),
       valid_(true)
-{
-    LOG(host, username, password);
-}
+{ }
 
 bool HostApiManager::getToken()
 {
@@ -65,11 +63,11 @@ bool HostApiManager::loadUsersImpl()
         return false;
     }
 
-    auto usersData = nlohmann::json::parse(r.text)["users"];
-    for (const auto& data : usersData) {
+    for (const auto& data : nlohmann::json::parse(r.text)["users"]) {
         const auto username = data["username"];
         users_[username] = user::User(data);
     }
+
     LOG_DEBUG("Users loaded.");
     return true;
 }

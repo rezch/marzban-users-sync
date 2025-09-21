@@ -2,3 +2,6 @@
 	path = third_party/cpp-dotenv
 	url = https://github.com/adeharo9/cpp-dotenv.git
 	ignore = dirty
+[submodule "third_party/tgbot-cpp"]
+	path = third_party/tgbot-cpp
+	url = https://github.com/reo7sp/tgbot-cpp

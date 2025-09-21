@@ -1,0 +1,23 @@
+diff --git a/common/libs/antlr4-cpp-runtime/CMakeLists.txt b/common/libs/antlr4-cpp-runtime/CMakeLists.txt
+index 1b488f2..b4f7c6b 100644
+--- a/third_party/cpp-dotenv/common/libs/antlr4-cpp-runtime/CMakeLists.txt
++++ b/third_party/cpp-dotenv/common/libs/antlr4-cpp-runtime/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 3.0.2)
++cmake_minimum_required(VERSION 4.0)
+ project(antlr4-cpp-runtime VERSION 4.8)
+ 
+ set(CMAKE_CXX_STANDARD 11)
+diff --git a/src/dotenv.cpp b/src/dotenv.cpp
+index 89bd3c1..acf985b 100644
+--- a/third_party/cpp-dotenv/src/dotenv.cpp
++++ b/third_party/cpp-dotenv/src/dotenv.cpp
+@@ -8,7 +8,7 @@
+ 
+ 
+ using namespace std;
+-using namespace dotenv;
++// using namespace dotenv;
+ 
+ 
+ dotenv::dotenv& dotenv::dotenv::load_dotenv(const string& dotenv_path, const bool overwrite, const bool interpolate)

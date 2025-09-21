@@ -8,7 +8,6 @@ int main()
 {
     dotenv::env.load_dotenv("../.env");
 
-    std::unordered_map<std::string, api::user::User> users;
     auto hostApi =
         api::createHostApiManager(dotenv::env["HOST"] + "/n2", 2)
         .init()

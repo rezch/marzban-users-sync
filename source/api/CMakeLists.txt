@@ -1,6 +1,6 @@
 #----------------------- PROJECT CONFIGURATION --------------------------------
 cmake_minimum_required(VERSION 4.0)
-project(sync_uuids VERSION 0.0.1)
+project(host_api_manager VERSION 0.0.1)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,9 +10,9 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
 else()
     string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
 endif()
-message(STATUS "Building SYNC_UUIDS in ${CMAKE_BUILD_TYPE} mode")
+message(STATUS "Building ${PROJECT_NAME} in ${CMAKE_BUILD_TYPE} mode")
 
-#----------------------- Libraries --------------------------------------------
+#----------------------- Include Libraries ------------------------------------
 include(FetchContent)
 
 set(BOOST_ENABLE_CMAKE ON)
@@ -50,21 +50,25 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 #----------------------- Lib --------------------------------------------------
-file(GLOB LIB_SOURCES
-    host_api_manager.cpp
-    user/user.cpp
-)
+add_library(${PROJECT_NAME} STATIC)
 
-file(GLOB LIB_HEADERS src/*.h include/*.h)
-
-add_library(sync_api
-    ${LIB_SOURCES} ${LIB_HEADERS})
-
-target_link_libraries(sync_api
+target_link_libraries(${PROJECT_NAME}
     ${Boost_LIBRARIES}
     PRIVATE cpr::cpr
     PUBLIC cpp_dotenv
     PRIVATE nlohmann_json::nlohmann_json)
 
-target_include_directories(sync_api
+target_sources(${PROJECT_NAME}
+    PRIVATE
+        host_api_manager.cpp
+        user/user.cpp)
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/common
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+target_include_directories(host_api_manager
     PUBLIC include)

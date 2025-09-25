@@ -8,6 +8,9 @@
         return *this;   \
     }
 
+namespace {
+constexpr int HTTP_STATUS_OK = 200;
+};
 
 namespace api {
 
@@ -93,6 +96,9 @@ HostApiManager& HostApiManager::addUser(const user::User& user)
 
 HostApiManager& HostApiManager::saveUsers()
 {
+    if (!token_.has_value()) {
+        init();
+    }
     VALID_BARRIER;
     for (const auto& [name, user] : users_) {
         if (!updateUser(name, user)) {

@@ -13,7 +13,7 @@ endif()
 message(STATUS "Building SYNC_UUIDS in ${CMAKE_BUILD_TYPE} mode")
 
 #----------------------- Libraries --------------------------------------------
-add_subdirectory(src/api)
+add_subdirectory(source/api)
 
 #----------------------- Result path ------------------------------------------
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
@@ -23,10 +23,7 @@ add_executable(
     main main.cpp)
 
 target_link_libraries(main
-    PUBLIC sync_api)
-
-target_include_directories(main
-    PUBLIC include)
+    PRIVATE host_api_manager)
 
 #----------------------- Build ------------------------------------------------
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "DEBUG")

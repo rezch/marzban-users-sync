@@ -11,9 +11,19 @@
 
 namespace api {
 
-namespace {
-constexpr int HTTP_STATUS_OK = 200;
-} // namespace
+struct SystemStats {
+    std::string version;
+    uint32_t mem_total;
+    uint32_t mem_used;
+    uint32_t cpu_cores;
+    uint32_t cpu_usage;
+    uint32_t total_user;
+    uint32_t users_active;
+    uint32_t incoming_bandwidth;
+    uint32_t outgoing_bandwidth;
+    uint32_t incoming_bandwidth_speed;
+    uint32_t outgoing_bandwidth_speed;
+};
 
 class HostApiManager {
     using jsonNode = std::unordered_map<std::string, nlohmann::json>;
@@ -26,26 +36,31 @@ public:
 
     HostApiManager& init();
 
-    // @valid barrier
+    // *** Users Api ***
+
+    /* @valid barrier */
     HostApiManager& loadUsers();
 
-    // @valid barrier
+    /* @valid barrier */
     HostApiManager& addUser(const user::User& user);
 
-    // @valid barrier
+    /* @valid barrier */
     HostApiManager& saveUsers();
 
     user::User& getUser(const std::string& name);
 
-    // @valid barrier
+    /* @valid barrier */
     template <class Callable>
         requires std::invocable<Callable, user::User&>
     HostApiManager& visitUser(const std::string& name, Callable visitor);
 
-    // @valid barrier
+    /* @valid barrier */
     template <class Callable>
         requires std::invocable<Callable, user::User&>
     HostApiManager& visitUsers(Callable visitor);
+
+    // *** System stats Api ***
+    SystemStats getSystemStats() const;
 
     bool isCompleted();
 

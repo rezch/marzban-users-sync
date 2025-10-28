@@ -15,19 +15,6 @@ message(STATUS "Building ${PROJECT_NAME} in ${CMAKE_BUILD_TYPE} mode")
 #----------------------- Include Libraries ------------------------------------
 include(FetchContent)
 
-set(BOOST_ENABLE_CMAKE ON)
-set(BOOST_INCLUDE_LIBRARIES
-    algorithm
-    asio
-    thread)
-FetchContent_Declare(
-    Boost
-    GIT_REPOSITORY https://github.com/boostorg/boost.git
-    GIT_PROGRESS TRUE
-    GIT_TAG boost-1.89.0
-    GIT_SHALLOW TRUE)
-FetchContent_MakeAvailable(Boost)
-
 FetchContent_Declare(
     cpr
     GIT_REPOSITORY https://github.com/libcpr/cpr.git
@@ -53,7 +40,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 add_library(${PROJECT_NAME} STATIC)
 
 target_link_libraries(${PROJECT_NAME}
-    ${Boost_LIBRARIES}
     PRIVATE cpr::cpr
     PUBLIC cpp_dotenv
     PRIVATE nlohmann_json::nlohmann_json)
@@ -69,6 +55,3 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-
-target_include_directories(host_api_manager
-    PUBLIC include)

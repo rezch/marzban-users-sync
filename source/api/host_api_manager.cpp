@@ -116,7 +116,7 @@ bool HostApiManager::updateUser(const std::string& name, const user::User& user)
     }
 
     const auto url     = cpr::Url{ host_ + "/api/user/" + name };
-    const auto bearer = cpr::Bearer{ token_.value() };
+    const auto bearer  = cpr::Bearer{ token_.value() };
     const auto headers = cpr::Header{
         { "Content-Type", "application/json" }
     };

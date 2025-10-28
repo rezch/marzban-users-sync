@@ -1,7 +1,6 @@
 #include "user.h"
 #include "logging.h"
 
-#include <boost/fusion/include/for_each.hpp>
 
 #define LOG_USER(...) \
     LOG_DEBUG("User:", getName(), __VA_ARGS__);

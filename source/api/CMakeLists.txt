@@ -13,6 +13,7 @@ endif()
 message(STATUS "Building ${PROJECT_NAME} in ${CMAKE_BUILD_TYPE} mode")
 
 #----------------------- Include Libraries ------------------------------------
+set(THIRD_PARTY_BUILD_FOLDER ${CMAKE_SOURCE_DIR}/build)
 include(FetchContent)
 
 FetchContent_Declare(
@@ -22,7 +23,8 @@ FetchContent_Declare(
     GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(cpr)
 
-find_package(nlohmann_json 3.12.0 REQUIRED)
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/nlohmann_json ${THIRD_PARTY_BUILD_FOLDER}/nlohmann_json)
 
 find_package(Patch)
 if(Patch_FOUND)
@@ -30,7 +32,7 @@ if(Patch_FOUND)
     COMMAND ${Patch_EXECUTABLE} -p1 -i ${CMAKE_SOURCE_DIR}/patches/cpp-dotenv.patch
   )
 endif()
-add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/cpp-dotenv build)
+add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/cpp-dotenv ${THIRD_PARTY_BUILD_FOLDER}/cpp-dotenv)
 
 #----------------------- Result path ------------------------------------------
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
@@ -42,7 +44,7 @@ add_library(${PROJECT_NAME} STATIC)
 target_link_libraries(${PROJECT_NAME}
     PRIVATE cpr::cpr
     PUBLIC cpp_dotenv
-    PRIVATE nlohmann_json::nlohmann_json)
+    PUBLIC nlohmann_json::nlohmann_json)
 
 target_sources(${PROJECT_NAME}
     PRIVATE
@@ -51,6 +53,7 @@ target_sources(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
+        ${PROJECT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/common
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

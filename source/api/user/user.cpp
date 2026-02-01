@@ -51,11 +51,11 @@ bool User::isSynchronized() const
     return synchronized_;
 }
 
-User& User::injectCustomUUID(const std::string& uuid)
+User& User::injectCustomUUID(const std::string& proxy, const std::string& uuid)
 {
     LOG_USER("inject uuid:", uuid);
     synchronized_ = false;
-    data_["proxies"]["vless"]["id"] = uuid;
+    data_["proxies"][proxy]["id"] = uuid;
     return *this;
 }
 

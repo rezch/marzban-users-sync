@@ -22,7 +22,7 @@ public:
 
     bool isSynchronized() const;
 
-    User& injectCustomUUID(const std::string& uuid);
+    User& injectCustomUUID(const std::string& proxy, const std::string& uuid);
 
     nlohmann::json toShort() const;
 

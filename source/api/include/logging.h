@@ -72,4 +72,4 @@ void logTag(Tag&& tag, Args&&... args)
             logTag("DEBUG", __VA_ARGS__);       \
     }
 
-#define LOG(...) log("LOG:", __VA_ARGS__);
+#define LOG(...) log("LOG:", __VA_ARGS__)

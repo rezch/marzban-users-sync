@@ -8,19 +8,23 @@ int main()
 {
     dotenv::env.load_dotenv("../.env");
 
-    auto hostApi =
-        api::createHostApiManager(dotenv::env["HOST"] + "/n2", 2)
-        .init()
+    auto hostApi = api::createHostApiManager();
+
+    hostApi->init()
         .loadUsers()
         .visitUser("test",
             [&](api::user::User& user)
             {
-                user.injectCustomUUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+                user.injectCustomUUID(
+                    "vless",
+                    "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
             }
         )
         .saveUsers();
 
-    if (hostApi.isCompleted()) {
+    LOG("Start");
+    if (hostApi->run().isCompleted())
         LOG("Done");
-    }
+    else
+        LOG("Got an error during execution");
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "system_stats.h"
 #include "user.h"
 
 #include <nlohmann/json.hpp>
@@ -11,50 +12,65 @@
 
 namespace api {
 
-struct SystemStats {
-    std::string version;
-    uint32_t mem_total;
-    uint32_t mem_used;
-    uint32_t cpu_cores;
-    uint32_t cpu_usage;
-    uint32_t total_user;
-    uint32_t users_active;
-    uint32_t incoming_bandwidth;
-    uint32_t outgoing_bandwidth;
-    uint32_t incoming_bandwidth_speed;
-    uint32_t outgoing_bandwidth_speed;
-};
-
 class HostApiManager {
     using jsonNode = std::unordered_map<std::string, nlohmann::json>;
 
+    template <bool OnlyValid = true, class Op, class... Args>
+        requires std::invocable<Op, HostApiManager*, Args...>
+    HostApiManager& defer(Op&& operation, Args&&... args)
+    {
+        auto weakThis = std::weak_ptr(self);
+
+        deferredOp_ =
+            [weakThis,
+                prevOp    = std::move(deferredOp_),
+                args      = std::make_tuple(std::forward<Args>(args)...),
+                operation = std::forward<Op>(operation)]() mutable
+        {
+            if (prevOp)
+                prevOp();
+
+            auto lockedThis = weakThis.lock();
+            if (!lockedThis || OnlyValid && !lockedThis->valid_)
+                return;
+
+            std::apply(
+                [&](auto&&... args)
+                { operation(lockedThis.get(), std::forward<decltype(args)>(args)...); },
+                std::move(args));
+        };
+
+        return *this;
+    }
+
 public:
     HostApiManager(
-            std::string host,
-            std::string username,
-            std::string password);
+        std::string host,
+        std::string username,
+        std::string password);
 
     HostApiManager& init();
 
+    HostApiManager& run();
+
+    HostApiManager& clear();
+
+    bool isCompleted();
+
     // *** Users Api ***
 
-    /* @valid barrier */
     HostApiManager& loadUsers();
 
-    /* @valid barrier */
     HostApiManager& addUser(const user::User& user);
 
-    /* @valid barrier */
     HostApiManager& saveUsers();
 
     user::User& getUser(const std::string& name);
 
-    /* @valid barrier */
     template <class Callable>
         requires std::invocable<Callable, user::User&>
     HostApiManager& visitUser(const std::string& name, Callable visitor);
 
-    /* @valid barrier */
     template <class Callable>
         requires std::invocable<Callable, user::User&>
     HostApiManager& visitUsers(Callable visitor);
@@ -62,15 +78,12 @@ public:
     // *** System stats Api ***
     SystemStats getSystemStats() const;
 
-    bool isCompleted();
-
 private:
-
     bool getToken();
 
     bool loadUsersImpl();
 
-    bool updateUser(const std::string& name, const user::User& user) const;
+    bool updateUser(const std::string& name, const user::User& user);
 
     const std::string host_;
     const std::string username_;
@@ -80,35 +93,39 @@ private:
     std::unordered_map<std::string, user::User> users_;
 
     bool valid_;
+
+    std::function<void()> deferredOp_;
+    std::shared_ptr<HostApiManager> self;
 };
 
 template <class Callable>
     requires std::invocable<Callable, user::User&>
 HostApiManager& HostApiManager::visitUser(const std::string& name, Callable visitor)
 {
-    if (!valid_) {
-        return *this;
-    }
-    if (users_.contains(name))
-        visitor(users_[name]);
-    else
-        valid_ = false;
-    return *this;
+    return defer(
+        [](HostApiManager* self, const std::string& name, Callable visitor)
+        {
+            if (self->users_.contains(name))
+                visitor(self->users_[name]);
+            else
+                self->valid_ = false;
+        }, name, visitor);
 }
 
 template <class Callable>
     requires std::invocable<Callable, user::User&>
 HostApiManager& HostApiManager::visitUsers(Callable visitor)
 {
-    if (!valid_) {
-        return *this;
-    }
-    for (auto& [_, user] : users_) {
-        visitor(user);
-    }
-    return *this;
+    return defer(
+        [](HostApiManager* self, Callable visitor)
+        {
+            for (auto& [_, user] : self->users_) {
+                visitor(user);
+            }
+        },
+        visitor);
 }
 
-HostApiManager createHostApiManager(std::string host, size_t nodeId);
+std::unique_ptr<HostApiManager> createHostApiManager();
 
 } // namespace api

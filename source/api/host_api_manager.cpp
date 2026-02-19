@@ -22,17 +22,6 @@ HostApiManager::HostApiManager(
       self(this, utils::EmptyDeleter)
 { }
 
-HostApiManager& HostApiManager::init()
-{
-    return defer(
-        [](HostApiManager* self)
-        {
-            self->getToken();
-            if (!self->token_.has_value())
-                self->valid_ = false;
-        });
-}
-
 HostApiManager& HostApiManager::run()
 {
     if (deferredOp_)
@@ -53,10 +42,19 @@ bool HostApiManager::isCompleted()
     return !deferredOp_ && valid_;
 }
 
+HostApiManager& HostApiManager::init()
+{
+    return defer(
+        [](HostApiManager* self)
+        {
+            self->getToken();
+            if (!self->token_.has_value())
+                self->valid_ = false;
+        });
+}
+
 bool HostApiManager::getToken()
 {
-    LOG_ERROR("---", host_);
-
     const auto url     = cpr::Url { host_ + "/api/admin/token" };
     const auto headers = cpr::Header {
         { "Content-Type", "application/x-www-form-urlencoded" }
@@ -66,36 +64,33 @@ bool HostApiManager::getToken()
         { "password", password_ },
     };
 
-    auto r = cpr::Post(url, headers, body);
-
-    if (r.status_code != HTTP_STATUS_OK) {
-        LOG_ERROR("Cannot get API token.", "Response code: ", r.status_code);
+    auto request = cpr::Post(url, headers, body);
+    if (request.status_code != HTTP_STATUS_OK) {
+        LOG_ERROR("Cannot get API token.", "Response code: ", request.status_code);
         return false;
     }
 
-    token_ = nlohmann::json::parse(r.text)["access_token"];
+    token_ = nlohmann::json::parse(request.text)["access_token"];
     LOG_DEBUG("Recieved API token");
     return true;
 }
 
 bool HostApiManager::loadUsersImpl()
 {
-    init();
+    checkToken();
     const auto url    = cpr::Url { host_ + "/api/users" };
     const auto bearer = cpr::Bearer { token_.value() };
 
-    auto r = cpr::Get(url, bearer);
-    if (r.status_code != HTTP_STATUS_OK) {
-        LOG_ERROR("Cannot get users info.", "Response code: ", r.status_code);
+    auto request = cpr::Get(url, bearer);
+    if (request.status_code != HTTP_STATUS_OK) {
+        LOG_ERROR("Cannot get users info.", "Response code: ", request.status_code);
         return false;
     }
 
-    for (const auto& data : nlohmann::json::parse(r.text)["users"]) {
-        const auto username = data["username"];
-        users_[username]    = user::User(data);
+    for (const auto& data : nlohmann::json::parse(request.text)["users"]) {
+        users_[data["username"]]    = user::User(data);
     }
 
-    LOG_DEBUG("Users loaded.");
     return true;
 }
 
@@ -132,33 +127,42 @@ HostApiManager& HostApiManager::saveUsers()
         });
 }
 
+const user::User& HostApiManager::getUser(const std::string& name)
+{
+    return users_.at(name);
+}
+
 bool HostApiManager::updateUser(const std::string& name, const user::User& user)
 {
     if (user.isSynchronized()) {
         return true;
     }
+    checkToken();
 
-    init();
     const auto url     = cpr::Url { host_ + "/api/user/" + name };
     const auto bearer  = cpr::Bearer { token_.value() };
     const auto headers = cpr::Header {
         { "Content-Type", "application/json" }
     };
-    const auto body = cpr::Body { user.toShort().dump() };
+    const auto body = cpr::Body { user.forPost().dump() };
 
-    auto r = cpr::Put(url, bearer, headers, body);
+    auto request = cpr::Put(url, bearer, headers, body);
 
-    if (r.status_code != HTTP_STATUS_OK) {
-        LOG_ERROR("Cannot update user info.", "Response code: ", r.status_code, '\n', r.text);
+    if (request.status_code != HTTP_STATUS_OK) {
+        LOG_ERROR("Cannot update user info.", "Response code: ", request.status_code, '\n', request.text);
         return false;
     }
-    LOG_DEBUG("User info successfully updated.");
+
     return true;
 }
 
-user::User& HostApiManager::getUser(const std::string& name)
+bool HostApiManager::checkToken()
 {
-    return users_[name];
+    if (!token_.has_value()) {
+        self->valid_ = false;
+        return false;
+    }
+    return true;
 }
 
 std::unique_ptr<HostApiManager> createHostApiManager()

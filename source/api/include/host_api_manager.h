@@ -17,31 +17,7 @@ class HostApiManager {
 
     template <bool OnlyValid = true, class Op, class... Args>
         requires std::invocable<Op, HostApiManager*, Args...>
-    HostApiManager& defer(Op&& operation, Args&&... args)
-    {
-        auto weakThis = std::weak_ptr(self);
-
-        deferredOp_ =
-            [weakThis,
-                prevOp    = std::move(deferredOp_),
-                args      = std::make_tuple(std::forward<Args>(args)...),
-                operation = std::forward<Op>(operation)]() mutable
-        {
-            if (prevOp)
-                prevOp();
-
-            auto lockedThis = weakThis.lock();
-            if (!lockedThis || OnlyValid && !lockedThis->valid_)
-                return;
-
-            std::apply(
-                [&](auto&&... args)
-                { operation(lockedThis.get(), std::forward<decltype(args)>(args)...); },
-                std::move(args));
-        };
-
-        return *this;
-    }
+    HostApiManager& defer(Op&& operation, Args&&... args);
 
 public:
     HostApiManager(
@@ -49,23 +25,19 @@ public:
         std::string username,
         std::string password);
 
-    HostApiManager& init();
-
     HostApiManager& run();
 
     HostApiManager& clear();
 
     bool isCompleted();
 
-    // *** Users Api ***
+    HostApiManager& init();
 
     HostApiManager& loadUsers();
 
     HostApiManager& addUser(const user::User& user);
 
     HostApiManager& saveUsers();
-
-    user::User& getUser(const std::string& name);
 
     template <class Callable>
         requires std::invocable<Callable, user::User&>
@@ -75,7 +47,8 @@ public:
         requires std::invocable<Callable, user::User&>
     HostApiManager& visitUsers(Callable visitor);
 
-    // *** System stats Api ***
+    const user::User& getUser(const std::string& name);
+
     SystemStats getSystemStats() const;
 
 private:
@@ -84,6 +57,8 @@ private:
     bool loadUsersImpl();
 
     bool updateUser(const std::string& name, const user::User& user);
+
+    bool checkToken();
 
     const std::string host_;
     const std::string username_;
@@ -97,6 +72,35 @@ private:
     std::function<void()> deferredOp_;
     std::shared_ptr<HostApiManager> self;
 };
+
+
+template <bool OnlyValid, class Op, class... Args>
+    requires std::invocable<Op, HostApiManager*, Args...>
+HostApiManager& HostApiManager::defer(Op&& operation, Args&&... args)
+{
+    auto weakThis = std::weak_ptr(self);
+
+    deferredOp_ =
+        [weakThis,
+            prevOp    = std::move(deferredOp_),
+            args      = std::make_tuple(std::forward<Args>(args)...),
+            operation = std::forward<Op>(operation)]() mutable
+    {
+        if (prevOp)
+            prevOp();
+
+        auto lockedThis = weakThis.lock();
+        if (!lockedThis || OnlyValid && !lockedThis->valid_)
+            return;
+
+        std::apply(
+            [&](auto&&... args)
+            { operation(lockedThis.get(), std::forward<decltype(args)>(args)...); },
+            std::move(args));
+    };
+
+    return *this;
+}
 
 template <class Callable>
     requires std::invocable<Callable, user::User&>

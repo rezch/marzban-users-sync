@@ -51,7 +51,7 @@ bool User::isSynchronized() const
     return synchronized_;
 }
 
-User& User::injectCustomUUID(const std::string& proxy, const std::string& uuid)
+User& User::injectProxyUUID(const std::string& proxy, const std::string& uuid)
 {
     LOG_USER("inject uuid:", uuid);
     synchronized_ = false;
@@ -59,7 +59,7 @@ User& User::injectCustomUUID(const std::string& proxy, const std::string& uuid)
     return *this;
 }
 
-nlohmann::json User::toShort() const
+nlohmann::json User::forPost() const
 {
     nlohmann::json shortData = data_;
     shortData.erase("username");

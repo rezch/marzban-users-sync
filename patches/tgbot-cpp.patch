@@ -1,0 +1,21 @@
+diff --git a/third_party/tgbot-cpp/CMakeLists.txt b/third_party/tgbot-cpp/CMakeLists.txt
+index 627af9c0..762b0d27 100644
+--- a/third_party/tgbot-cpp/CMakeLists.txt
++++ b/third_party/tgbot-cpp/CMakeLists.txt
+@@ -69,11 +69,11 @@ endif()
+ 
+ ## boost
+ set(Boost_USE_MULTITHREADED ON)
+-if (ENABLE_TESTS)
+-    find_package(Boost 1.65.1 COMPONENTS system unit_test_framework REQUIRED)
+-else()
+-    find_package(Boost 1.65.1 COMPONENTS system REQUIRED)
+-endif()
++# if (ENABLE_TESTS)
++#     find_package(Boost 1.65.1 COMPONENTS system unit_test_framework REQUIRED)
++# else()
++#     find_package(Boost 1.65.1 COMPONENTS system REQUIRED)
++# endif()
+ include_directories(${Boost_INCLUDE_DIR})
+ link_directories(${Boost_LIBRARY_DIR_RELEASE})
+ if(NOT Boost_USE_STATIC_LIBS)

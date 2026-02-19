@@ -1,9 +1,11 @@
 #----------------------- PROJECT CONFIGURATION --------------------------------
 cmake_minimum_required(VERSION 4.0)
-project(host_api_manager VERSION 0.0.1)
+project(telegram_manager VERSION 0.0.1)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(BOOST_USE_MULTITHREADED ON)
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE RELEASE)
@@ -14,42 +16,41 @@ message(STATUS "Building ${PROJECT_NAME} in ${CMAKE_BUILD_TYPE} mode")
 
 #----------------------- Include Libraries ------------------------------------
 set(THIRD_PARTY_BUILD_FOLDER ${CMAKE_SOURCE_DIR}/build)
-include(FetchContent)
 
-FetchContent_Declare(
-    cpr
-    GIT_REPOSITORY https://github.com/libcpr/cpr.git
-    GIT_TAG 1.12.0
-    GIT_SHALLOW TRUE)
-FetchContent_MakeAvailable(cpr)
-
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/nlohmann_json ${THIRD_PARTY_BUILD_FOLDER}/nlohmann_json)
+find_package(Threads REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(Boost REQUIRED)
+find_package(CURL)
+include_directories(/usr/include ${OPENSSL_INCLUDE_DIR} ${Boost_INCLUDE_DIR})
+include_directories(${CURL_INCLUDE_DIRS})
+add_definitions(-DHAVE_CURL)
+add_subdirectory(../../third_party/tgbot-cpp
+    ${THIRD_PARTY_BUILD_FOLDER}/tgbot-cpp)
 
 find_package(Patch)
 if(Patch_FOUND)
   execute_process(
-    COMMAND ${Patch_EXECUTABLE} -p1 -i ${CMAKE_SOURCE_DIR}/patches/cpp-dotenv.patch
+    COMMAND ${Patch_EXECUTABLE} -p1 -i ../../patches/cpp-dotenv.patch
   )
 endif()
-add_subdirectory(${CMAKE_SOURCE_DIR}/third_party/cpp-dotenv ${THIRD_PARTY_BUILD_FOLDER}/cpp-dotenv)
+add_subdirectory(../../third_party/cpp-dotenv
+    ${THIRD_PARTY_BUILD_FOLDER}/cpp-dotenv)
 
 #----------------------- Result path ------------------------------------------
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 #----------------------- Lib --------------------------------------------------
-add_library(${PROJECT_NAME} STATIC)
+add_executable(${PROJECT_NAME}
+    main.cpp)
 
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE cpr::cpr
     PUBLIC cpp_dotenv
-    PUBLIC nlohmann_json::nlohmann_json)
-
-target_sources(${PROJECT_NAME}
-    PRIVATE
-        host_api_manager.cpp
-        user/user.cpp)
+    PRIVATE TgBot
+    PRIVATE ${CMAKE_THREAD_LIBS_INIT}
+    PRIVATE ${OPENSSL_LIBRARIES}
+    PRIVATE ${Boost_LIBRARIES}
+    PRIVATE ${CURL_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
